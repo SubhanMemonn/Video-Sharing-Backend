@@ -57,7 +57,7 @@ router.route("/all-comment/:videoId").get(verifyJWT, getVideoComments)
 router.route("/toggle/publish/:videoId").patch(verifyJWT, togglePublishStatus)
 
 
-router.route("/:videoId").get(getVideo)
+router.route("/:videoId").get(verifyJWT, getVideo)
 
 
 

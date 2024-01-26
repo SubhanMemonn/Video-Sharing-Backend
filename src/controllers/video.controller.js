@@ -1,12 +1,12 @@
-import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiError } from "../utils/ApiError.js"
-import { ApiResponse } from "../utils/ApiResponse.js";
-import { Video } from "../models/video.model.js";
-import { uploadOnCloudinary } from "../utils/couldinary.js";
 import mongoose, { isValidObjectId } from "mongoose";
-import Like from "../models/like.model.js"
 import Comment from "../models/comment.model.js";
-
+import Like from "../models/like.model.js";
+import { Video } from "../models/video.model.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { uploadOnCloudinary } from "../utils/couldinary.js";
+import { User } from "../models/user.model.js";
 
 
 let uploadVideo = asyncHandler(async (req, res) => {
@@ -34,10 +34,12 @@ let uploadVideo = asyncHandler(async (req, res) => {
     }
 
     let uploadVideo = await uploadOnCloudinary(videoLocalPath)
+
     if (!uploadVideo.url) {
 
         throw new ApiError(400, "Error while uploading video")
     }
+    console.log(uploadVideo.duration);
     let thumbnail = await uploadOnCloudinary(thumbnailLocalPath)
     if (!thumbnail.url) {
 
@@ -50,6 +52,7 @@ let uploadVideo = asyncHandler(async (req, res) => {
         title,
         description,
         isPublished,
+        duration: uploadVideo?.duration
     })
 
     if (!video) {
@@ -67,15 +70,27 @@ let getVideo = asyncHandler(async (req, res) => {
     if (!isValidObjectId(videoId)) {
         throw new ApiError(404, "Video id does not valid")
     }
-    let video = await Video.findById(videoId);
+    let video = await Video.findByIdAndUpdate(videoId, {
+
+        $inc: {
+            views: 1
+        }
+
+    }, { new: true });
     if (!video) {
         throw new ApiError(404, "Video not found")
 
     }
+    console.log(req.user?._id);
+
+    const addUserHistory = await User.findByIdAndUpdate(req.user?._id,
+        { $push: { watchHistory: video?._id } },
+        { new: true })
+
     return res.status(201)
         .json(
             new ApiResponse(
-                200, video, "Video fatch successfully"
+                200, { video, addUserHistory }, "Video fatch successfully"
             )
         )
 
@@ -507,9 +522,36 @@ const getVideoComments = asyncHandler(async (req, res) => {
                             fullName: 1,
                             username: 1,
                             avatar: 1,
-                            content: 1
+
                         }
                     },
+                    {
+                        $lookup: {
+                            from: "comments",
+                            localField: "_id",
+                            foreignField: "owner",
+                            as: "content",
+                            pipeline: [
+                                {
+                                    $project: {
+                                        content: 1
+                                    }
+                                },
+                            ]
+                        }
+                    },
+                    {
+                        $addFields: {
+                            comments: {
+                                $first: "$content"
+                            }
+                        }
+                    },
+                    {
+                        $project: {
+                            content: 0
+                        }
+                    }
                 ],
             }
         },
@@ -539,7 +581,8 @@ const getVideoComments = asyncHandler(async (req, res) => {
         },
         {
             $project: {
-                owner: 1,
+                _id: 0,
+                comments: 1,
                 likeCount: 1,
             }
         },
@@ -548,26 +591,16 @@ const getVideoComments = asyncHandler(async (req, res) => {
             $limit: limit
         }
     ]);
+    const result = await Comment.aggregatePaginate(allComment)
     if (!allComment.length) {
         throw new ApiError(400, "No comment`")
     }
+    console.log(result.totalPages);
     return res.status(200)
-        .json(new ApiResponse(200, allComment, "All comment fetched"))
+        .json(new ApiResponse(200, { allComment, totalPage: result.totalPages }, "All comment fetched"))
 
 })
 export {
-    uploadVideo,
-    removeVideo,
-    updateVideo,
-    getVideo,
-    likeVideo,
-    commentVideo,
-    removeCommentVideo,
-    views,
-    togglePublishStatus,
-    getAllVideos,
-    getTotalVideolike,
-    toggleCommentLike,
-    getTotalCommentLike,
-    getVideoComments,
-}
+    commentVideo, getAllVideos, getTotalCommentLike, getTotalVideolike, getVideo, getVideoComments, likeVideo, removeCommentVideo, removeVideo, toggleCommentLike, togglePublishStatus, updateVideo, uploadVideo, views
+};
+

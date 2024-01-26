@@ -9,16 +9,16 @@ let videoSchema = new Schema(
         },
         videoFile: {
             type: String,
-            require: true,
+            required: true,
 
         },
         thumbnail: {
             type: String,
-            require: true,
+            required: true,
         },
         title: {
             type: String,
-            require: true,
+            required: true,
 
         },
         description: {
@@ -26,7 +26,7 @@ let videoSchema = new Schema(
         },
         duration: {
             type: Number,
-            require: true,
+            required: true,
         },
         views:
         {
@@ -36,7 +36,7 @@ let videoSchema = new Schema(
         ,
         isPublished: {
             type: Boolean,
-            require: true,
+            required: true,
             default: true,
 
         },
