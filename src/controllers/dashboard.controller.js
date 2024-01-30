@@ -132,31 +132,6 @@ const getChannelVideos = asyncHandler(async (req, res) => {
                 localField: "channel",
                 foreignField: "owner",
                 as: "owner",
-                pipeline: [
-
-                    {
-                        $lookup: {
-                            from: "subscriptions",
-                            localField: "owner",
-                            foreignField: "channel",
-                            as: "videos",
-                            pipeline: [
-                                {
-                                    $addFields: {
-                                        videos: {
-                                            $concatArrays: "$videos"
-                                        }
-                                    }
-                                },
-
-                            ]
-                        }
-                    }, {
-                        $project: {
-                            videos: 0,
-                        }
-                    }
-                ]
             }
         },
         {
