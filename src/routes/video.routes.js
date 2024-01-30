@@ -9,7 +9,6 @@ import {
     likeVideo,
     commentVideo,
     removeCommentVideo,
-    views,
     togglePublishStatus,
     getAllVideos,
     getTotalVideolike,
@@ -44,7 +43,6 @@ router.route("/comment-like/:commentId").post(verifyJWT, toggleCommentLike)
 
 router.route("/remove-comment/:videoId").delete(verifyJWT, removeCommentVideo)
 
-router.route("/views/:videoId").post(verifyJWT, views)
 
 router.route("/total-like/:videoId").get(verifyJWT, getTotalVideolike)
 

@@ -15,6 +15,8 @@ const router = Router()
 
 router.use(verifyJWT);
 
+router.route("/user/:userId").get(getUserPlaylists)
+
 router.route("/").post(createPlaylist)
 
 router.route("/:playlistId")

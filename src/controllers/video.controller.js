@@ -1,12 +1,12 @@
 import mongoose, { isValidObjectId } from "mongoose";
 import Comment from "../models/comment.model.js";
 import Like from "../models/like.model.js";
+import { User } from "../models/user.model.js";
 import { Video } from "../models/video.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/couldinary.js";
-import { User } from "../models/user.model.js";
 
 
 let uploadVideo = asyncHandler(async (req, res) => {
@@ -81,7 +81,7 @@ let getVideo = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Video not found")
 
     }
-    console.log(req.user?._id);
+    // console.log(req.user?._id);
 
     const addUserHistory = await User.findByIdAndUpdate(req.user?._id,
         { $push: { watchHistory: video?._id } },
@@ -252,24 +252,6 @@ const getAllVideos = asyncHandler(async (req, res) => {
         .json(
             new ApiResponse(
                 200, videos, "filtered producted"
-            )
-        )
-})
-
-let views = asyncHandler(async (req, res) => {
-    let { videoId } = req.params
-    let views = await Video.findByIdAndUpdate({ _id: videoId }, {
-
-        $inc: {
-            views: 1
-        }
-    }
-        , { new: true })
-
-    return res.status(200)
-        .json(
-            new ApiResponse(
-                200, views, "Views fatch successfully"
             )
         )
 })
@@ -601,6 +583,6 @@ const getVideoComments = asyncHandler(async (req, res) => {
 
 })
 export {
-    commentVideo, getAllVideos, getTotalCommentLike, getTotalVideolike, getVideo, getVideoComments, likeVideo, removeCommentVideo, removeVideo, toggleCommentLike, togglePublishStatus, updateVideo, uploadVideo, views
+    commentVideo, getAllVideos, getTotalCommentLike, getTotalVideolike, getVideo, getVideoComments, likeVideo, removeCommentVideo, removeVideo, toggleCommentLike, togglePublishStatus, updateVideo, uploadVideo,
 };
 
