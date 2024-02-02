@@ -11,21 +11,22 @@ let uploadTweet = asyncHandler(async (req, res) => {
     if (!content && content.trim() === "") {
         throw new ApiError(400, "tweet filed are required")
     }
-    let tweetVideoLocalPath;
-    if (req.files && Array.isArray(req.files?.video) && req.files?.video?.length > 0) {
-        tweetVideoLocalPath = req.files.video[0]?.path
+    let postLocalPath = req.file?.path
+    if (postLocalPath) {
+        let post = await uploadOnCloudinary(postLocalPath)
+        if (!post?.url) {
+            throw new ApiError(400, "Error while uploading post")
+        } else {
+
+            postLocalPath = post
+        }
+
     }
-    let tweetImageLocalPath;
-    if (req.files && Array.isArray(req.files?.image) && req.files?.image.length > 0) {
-        tweetImageLocalPath = req.files.image[0]?.path
-    }
-    let tweetImage = await uploadOnCloudinary(tweetImageLocalPath)
-    let tweetVideo = await uploadOnCloudinary(tweetVideoLocalPath)
+
 
     let tweet = await Tweet.create({
         content,
-        image: tweetImage?.url || "",
-        video: tweetVideo?.url || "",
+        post: postLocalPath?.url || "",
         owner: new mongoose.Types.ObjectId(req.user?._id)
     })
     if (!tweet) {
@@ -160,6 +161,12 @@ let likeTweet = asyncHandler(async (req, res) => {
             throw new ApiError(500, "failed to remove like")
 
         }
+        return res.status(201)
+            .json(
+                new ApiResponse(
+                    201, like, "like removing successfully"
+                )
+            )
     } else {
 
         var like = await Like.create(
@@ -172,13 +179,14 @@ let likeTweet = asyncHandler(async (req, res) => {
             throw new ApiError(500, "failed to like")
 
         }
-    }
-    return res.status(201)
-        .json(
-            new ApiResponse(
-                201, like, "like successfully"
+        return res.status(201)
+            .json(
+                new ApiResponse(
+                    201, {}, "like successfully"
+                )
             )
-        )
+    }
+
 })
 let totalTweetLike = asyncHandler(async (req, res) => {
     let { tweetId } = req.params

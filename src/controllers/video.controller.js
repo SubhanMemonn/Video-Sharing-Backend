@@ -278,6 +278,9 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
             {
                 new: true
             })
+        return res.status(201).json(
+            new ApiResponse(200, {}, "Updated Video Unpublished")
+        )
     } if (!isPublished) {
         const isPublishedTrue = await Video.findByIdAndUpdate(video?._id, {
             $set: {
@@ -287,10 +290,11 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
             {
                 new: true
             })
+        return res.status(201).json(
+            new ApiResponse(200, {}, "Updated Video Published")
+        )
     }
-    return res.status(201).json(
-        new ApiResponse(200, isPublished, "Updated")
-    )
+
 
 })
 
@@ -308,25 +312,34 @@ let likeVideo = asyncHandler(async (req, res) => {
         let removeLike = await Like.findByIdAndDelete(likeExists?._id)
         if (!removeLike) {
             throw new ApiError(500, "Failed to unlike try again")
+
         }
+
+        return res.status(201)
+            .json(
+                new ApiResponse(
+                    201, {}, "Video liked"
+                )
+            )
     }
     else {
 
-        var like = await Like.create({
+        const like = await Like.create({
             likeby: new mongoose.Types.ObjectId(req.user?._id),
             video: new mongoose.Types.ObjectId(videoId)
         })
         if (!like) {
             throw new ApiError(500, "Failed to like video")
         }
+        return res.status(201)
+            .json(
+                new ApiResponse(
+                    201, {}, "Video like removed"
+                )
+            )
+
     }
 
-    return res.status(201)
-        .json(
-            new ApiResponse(
-                201, like, "like successfully"
-            )
-        )
 })
 
 let getTotalVideolike = asyncHandler(async (req, res) => {
@@ -402,16 +415,18 @@ let toggleCommentLike = asyncHandler(async (req, res) => {
     })
     if (existsLikeOnComment) {
         await Like.findByIdAndDelete(existsLikeOnComment?._id)
+        return res.status(200)
+            .json(new ApiResponse(200, {}, "Comment like removed"))
     } else {
 
-        var toggleCommentLike = await Like.create({
+        const toggleCommentLike = await Like.create({
             likeby: new mongoose.Types.ObjectId(req.user?._id),
             Comment: new mongoose.Types.ObjectId(commentId)
         })
+        return res.status(200)
+            .json(new ApiResponse(200, {}, "Comment liked"))
     }
 
-    return res.status(200)
-        .json(new ApiResponse(200, toggleCommentLike, "Update"))
 })
 
 let getTotalCommentLike = asyncHandler(async (req, res) => {
@@ -464,7 +479,7 @@ let removeCommentVideo = asyncHandler(async (req, res) => {
         { owner: new mongoose.Types.ObjectId(req.user?._id) }]
     })
     if (commentExisted) {
-        var removeComment = await Comment.findByIdAndDelete(commentExisted?._id)
+        const removeComment = await Comment.findByIdAndDelete(commentExisted?._id)
         if (!removeComment) {
             throw new ApiError(500, "Comment does not deleted")
         }

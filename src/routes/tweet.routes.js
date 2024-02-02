@@ -14,16 +14,7 @@ import upload from "../middlewares/multer.middleware.js";
 let router = Router()
 
 
-router.route("/upload").post(verifyJWT, upload.fields([
-    {
-        name: "image",
-        maxCount: 1,
-    },
-    {
-        name: "video",
-        maxCount: 1,
-    },
-]), uploadTweet)
+router.route("/upload").post(verifyJWT, upload.single("post"), uploadTweet)
 router.route("/update/:tweetId").patch(verifyJWT, updateTweet)
 router.route("/all").get(verifyJWT, getAllTweet)
 router.route("/:tweetId").get(verifyJWT, getTweet)

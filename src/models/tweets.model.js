@@ -5,11 +5,7 @@ let tweetSchema = new Schema({
         type: String,
         require: true
     },
-    image: {
-        type: String,
-
-    },
-    video: {
+    post: {
         type: String,
 
     },
